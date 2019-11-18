@@ -21,9 +21,7 @@
 export default {
   data() {
     return {
-      //html: '<p>para one</p><p>para two has a <a href="/" >link!</a></p>',
-      //html: '<p>para one</p><ul><li>para two</li><li><p>para three a <a href="/" >link!</a></p><p>this should be indented</p></li></ul>',
-      html: '<p>para one</p><ol><li>para two</li><li><p>para three a <a href="/" >link!</a></p><p>this should be indented</p></li></ol>',
+      html: '',
       md: '',
     };
   },
