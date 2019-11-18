@@ -1,0 +1,26 @@
+.tomd {
+  max-width: 45rem;
+  margin: 1rem auto;
+  padding: 1rem;
+}
+.tomd__input, .tomd__output {
+  margin: 1rem 0;
+
+  textarea {
+    width: 100%;
+    height: 5rem;
+  }
+}
+
+.tomd__input {
+  textarea {
+    height: 5rem;
+    margin-bottom: 1rem;
+  }
+}
+
+.tomd__output {
+  textarea {
+    height: calc(100vh - 20rem);
+  }
+}
