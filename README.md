@@ -8,4 +8,4 @@ Have a go at <https://artfulrobot.uk/lil/tomd/>
 
 ## Copyright Rich Lott / Artful Robot
 
-GPL3+ license
+GPL-3.0 license. See LICENSE
