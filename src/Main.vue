@@ -54,8 +54,11 @@ class Converter {
       'EM'     : { type: 'inline', converter: 'converteEmphasis' },
       'I'      : { type: 'inline', converter: 'converteEmphasis' },
       'BR'     : { type: 'inline', converter: 'convertBr' },
+      'CODE'   : { type: 'inline', converter: 'convertCode' },
       'P'      : { type: 'block', converter: 'convertPara' },
       'DIV'    : { type: 'block', converter: 'convertContent' },
+      'PRE'    : { type: 'block', converter: 'convertPre' },
+      'BLOCKQUOTE' : { type: 'block', converter: 'convertBlockQuote' },
       'UL'     : { type: 'block', converter: 'convertList' },
       'OL'     : { type: 'block', converter: 'convertList' },
       'LI'     : { type: 'block', converter: 'convertListItem' },
@@ -70,7 +73,7 @@ class Converter {
     this.lastEl = null;
   }
   convert() {
-    return this.convertChildren(this.container);
+    return this.convertChildren(this.container).replace(/\s+$/, '\n');
   }
   convertChildren(div) {
     var childContent = '';
@@ -89,7 +92,6 @@ class Converter {
   }
   convertText(el) {
     var t = el.textContent;
-    const container = this.parentStackItem();
 
     var spaceAtStart = '', body = '';
     var m = t.match(/^(\s*)(.*)$/);
@@ -100,10 +102,11 @@ class Converter {
     else {
       body = t;
     }
-    body = body.replace(/\s+$/, ' ');
 
-    // Reduce whitespace inside body.
-    body = body.replace(/\s{2,}/g, ' ');
+    // Reduce whitespace inside body unless we're in a pre block.
+    if (!this.parentStackNodeName().match(/^(PRE|CODE)$/)) {
+      body = body.replace(/\s{2,}/g, ' ');
+    }
 
     // If we're following another inline element that is not empty, allow one space at the start.
     if (this.lastEl && this.lastEl.type === 'inline' && this.lastEl.result) {
@@ -112,18 +115,25 @@ class Converter {
     else {
       spaceAtStart = '';
     }
-    if (0) console.log({
-      phase: 2,
-      start: spaceAtStart,
-      body: body,
-      out: spaceAtStart + body
-    });
-
-    console.log({lastEl: (this.lastEl ? this.lastEl.type :'?'), text: t, out: spaceAtStart + body});
     return spaceAtStart + body;
+  }
+  convertCode(el) {
+    const content = this.convertChildren(el);
+    if (this.parentStackNodeName() === 'PRE') {
+      // Don't double-encode it.
+      return content;
+    }
+    return '`' + content + '`';
   }
   convertPara(el) {
     return this.convertChildren(el).replace(/\n+$/, '') + "\n\n";
+  }
+  convertPre(el) {
+    return '\n```\n' + this.convertChildren(el).replace(/\n+$/, '') + '\n```\n\n';
+  }
+  convertBlockQuote(el) {
+    var content = this.convertChildren(el).replace(/\n+$/, '');
+    return content.replace(/^/mg, '> ');
   }
   convertLinkOrAnchor(el) {
     if (el.hasAttribute('href')) {
@@ -150,7 +160,7 @@ class Converter {
     var content = this.convertChildren(el).replace(/\n+$/, '');
     var marker;
 
-    if (list.el.nodeName === 'UL') {
+    if (!list || list.el.nodeName === 'UL') {
       marker = '*  ';
     }
     else {
@@ -174,8 +184,8 @@ class Converter {
   converteEmphasis(el) {
     return '*' + this.convertChildren(el) + '*';
   }
-  parentStackItem() {
-    return (this.stack.length > 1) ? this.stack[this.stack.length - 2] : null;
+  parentStackNodeName() {
+    return (this.stack.length > 1) ? this.stack[this.stack.length - 2].el.nodeName : '';
   }
 }
 
